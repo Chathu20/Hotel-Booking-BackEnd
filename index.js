@@ -1,53 +1,49 @@
+import bodyParser from "body-parser";
+import express from "express";
+import userRouter from "./routes/usersRoute.js";
+import mongoose from "mongoose";
+import galleryItemRouter from "./routes/galleryItemRoute.js";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+import categoryRouter from "./routes/categoryRoute.js";
 
-import bodyParser from 'body-parser'
-import express from 'express'
-import userRouter from './routes/usersRoute.js'
-import mongoose from 'mongoose'
-import galleryItemRouter from './routes/galleryItemRoute.js'
-import jwt from 'jsonwebtoken'
-import dotenv from 'dotenv'
+dotenv.config();
 
-dotenv.config()
-const app = express()
-
-app.use(bodyParser.json())
+const app = express();
+app.use(bodyParser.json());
 
 const connectionString = process.env.MONGO_URL;
 
-app.use((req,res,next)=>{
-    const token = req.header("Autherization")?.replace("Bearer",  "")
+app.use((req, res, next) => {
+    const token = req.header("Authorization")?.replace("Bearer ", "");
 
-    if(token !=null){
-        jwt.verify(token,process.env.JWT_KEY,
-            (err,decoded)=>{
-           if(decoded != null){
-            req.user = decoded
-            next()
-           }else{
-            next()
-           }
-        }
-    )
-    }else{
-        next()
+    if (token != null) {
+        jwt.verify(token, process.env.JWT_KEY, (err, decoded) => {
+            if (decoded != null) {
+                req.user = decoded;
+            }
+            next();
+        });
+    } else {
+        next();
     }
 });
-mongoose.connect(connectionString).then(
-    ()=>{
-        console.log("Connected to th database")
-    }
-).catch(
-    ()=>{
-        console.log("Connection failed")
-    }
 
-)
+mongoose.connect(connectionString)
+    .then(() => {
+        console.log("Connected to the database");
+    })
+    .catch((error) => {
+        console.log("Connection failed");
+        console.log(error.message);
+    });
 
+app.use("/api/users", userRouter);
+app.use("/api/gallery", galleryItemRouter);
+app.use("/api/category", categoryRouter);
 
-app.use("/api/users",userRouter)
-app.use("/api/gallery",galleryItemRouter)
+const PORT = process.env.PORT || 5000;
 
-app.listen(5000,(req,res)=>{
-    console.log("Sever is running on on port 5000")
-
+app.listen(PORT, () => {
+    console.log("Server is running on port " + PORT);
 });
