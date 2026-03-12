@@ -129,7 +129,8 @@ export function updateRoom(req,res){
 //-----------------Get Rooms by Category----------------
 export function getRoomsByCategory(req, res){
     const category = req.params.category
-    Room.find({Category: category}).then(
+
+    Room.find({category: category}).then(
         (result)=>{
             res.json({
                 rooms: result

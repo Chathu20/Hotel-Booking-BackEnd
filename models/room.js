@@ -27,7 +27,7 @@ const roomSchema = new mongoose.Schema(
             }
         ],
         specialDescription : {
-            type : Number,
+            type : String,
             default: "",
         },
         notes : {
