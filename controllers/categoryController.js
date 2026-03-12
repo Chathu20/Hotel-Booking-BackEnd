@@ -34,3 +34,95 @@ export function createCategory(req,res){
         }
     )
 }
+//--------Delete Category--------
+export function deleteCategory(req, res){
+    if(req.user == null){
+        res.status(401).json({
+            message: "Unauthorized"
+        })
+        return
+    }
+    if(req.user.type != "admin"){
+        res.status(403).json({
+            message: "Forbidden"
+        })
+        return
+    }
+    const name = req.params.name
+    Category.findOneAndDelete({name: name}).then(
+        ()=>{
+            res.json({
+                message: "Category Deleted Successfully"
+            })
+        }
+    ).catch(
+        ()=>{
+            res.json({
+                message: "Category Deletion Failed"
+            })
+        }
+    )
+}
+
+export function getCategory(req, res){
+    Category.find().then(
+        (result)=>{
+            res.json({
+                categories: result
+            })
+        }
+    ).catch(
+        ()=>{
+            res.json({
+                message: "Failed to get Categories"
+            })
+        }
+    )
+}
+//------ByName Category----------
+export function getCategoryByName(req, res){
+    const name = req.params.name
+    Category.findOne({name: name}).then(
+        (result)=>{
+            if(result == null){
+                res.json({
+                    message: "Category not found"
+                })
+            }else{
+                res.json({
+                    category: result
+                })
+            }
+        }
+    ).catch(
+        ()=>{
+            res.json({
+                message: "Failed to get Category"
+            })
+        }
+    )
+}
+
+//-------Update Category-------
+export function updateCategory(req, res){
+    if(!isAdminValid(req)){
+        res.status(403).json({
+            message: "Unauthorized"
+        })
+        return
+    }
+    const name = req.params.name
+    Category.updateOne({name: name},req.body).then(
+        ()=>{
+            res.json({
+                message: "Category Updated Successfully"
+            })
+        }
+    ).catch(
+        ()=>{
+            res.json({
+                massage: "Failed to Update Category"
+            })
+        }
+    )
+}
