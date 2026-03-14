@@ -37,7 +37,7 @@ export function createBooking(req, res) {
             message: "Booking Creation Failed",
             error: err,
           });
-          console.log("one");
+          
         });
     })
     .catch((err) => {
@@ -45,7 +45,7 @@ export function createBooking(req, res) {
         message: "Booking Creation Failed",
         error: err,
       });
-      console.log("Two");
+      
     });
 }
 
@@ -70,6 +70,9 @@ export function getAllBookings(req, res) {
 export function retrieveBookingByDate(req, res) {
   const start = req.body.start;
   const end = req.body.end;
+  console.log(start);
+	console.log(end);
+
 
   Booking.find({
     start: {

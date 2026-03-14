@@ -1,5 +1,5 @@
 import express from "express";
-import { postUsers, loginUsers, getUsers, updateUser, deleteUser, getUser } from "../controllers/userController.js"
+import { postUsers, loginUsers, getUser, changeUserType, delelteUserByEmail, getAllUsers , disableUser , verifyUserEmail} from "../controllers/userController.js"
 
 const userRouter = express.Router()
 
@@ -7,12 +7,16 @@ userRouter.post("/",postUsers)
 
 userRouter.post("/login",loginUsers)
 
-userRouter.get("/", getUser)
+userRouter.get("/",getUser)
 
-userRouter.get("/all",getUsers)
+userRouter.post("/all",getAllUsers)
 
-userRouter.put("/:email", updateUser)
+userRouter.put("/change-type/:userId",changeUserType)
 
-userRouter.delete("/:email", deleteUser)
+userRouter.put("/disable/:userId",disableUser)
+
+userRouter.delete("/admin-delete/:email",delelteUserByEmail)
+
+userRouter.post("/verify-email", verifyUserEmail)
 
 export default userRouter;

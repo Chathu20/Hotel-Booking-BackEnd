@@ -69,57 +69,137 @@ export function loginUsers(req,res){
 }
 
 //--------------------------Admin checking------------------------------
-export function isAdminValid(req){
-    if(req.body.user == null){
-        return false
-    }
-    if(req.body.user.type != "Admin"){
-        return false
-    }
-    return true
+export function isAdminValid(req) {
+  if (req.user == null) {
+    return false;
+  }
+  if (req.user.type != "admin") {
+    return false;
+  }
+  return true;
 }
 
 //-------------------------Customer checking-----------------------------
-export function isCustomerValid(req){
-    if(req.body.user == null){
-        return false
-    }
-    if(req.body.user.type != "Customer"){
-        return false
-    }
-    return true
+export function isCustomerValid(req) {
+  if (req.user == null) {
+    return false;
+  }
+  console.log(req.user);
+  if (req.user.type != "customer") {
+    return false;
+  }
+
+  return true;
+
 }
 
-export function getUser(req, res){
-    const user = req.body.user
-    if(user == null){
+export function getAllUsers(req, res) {
+  // Validate admin
+  if (!isAdminValid(req)) {
+    res.status(403).json({
+      message: "Forbidden",
+    });
+    return;
+  }
+
+  // Extract page and pageSize from query parameters
+  const page = parseInt(req.body.page) || 1; // Default to page 1
+  const pageSize = parseInt(req.body.pageSize) || 10; // Default to 10 items per page
+  const skip = (page - 1) * pageSize;
+
+  User.find()
+    .skip(skip)
+    .limit(pageSize)
+    .then((users) => {
+      User.countDocuments().then((totalCount) => {
         res.json({
-            message: "not found"
-        })
-    }else{
-        res.json({
-            message: "found",
-            user: user
-        })
-    }
+          message: "Users found",
+          users: users,
+          pagination: {
+            currentPage: page,
+            pageSize: pageSize,
+            totalUsers: totalCount,
+            totalPages: Math.ceil(totalCount / pageSize),
+          },
+        });
+      });
+    })
+    .catch((err) => {
+      res.status(500).json({
+        message: "Error fetching users",
+        error: err,
+      });
+    });
 }
 
-//----------------------Show All Users------------------------
-export function getUsers(req, res){
-    User.find().then(
-        (result)=>{
-            res.json({
-                users: result
-            })
-        }
-    ).catch(
-        ()=>{
-            res.json({
-                message: "Failed to get Users"
-            })
-        }
-    )
+//change type of user
+export function changeUserType(req, res) {
+  //validate admin
+  if (!isAdminValid(req)) {
+    res.status(403).json({
+      message: "Forbidden",
+    });
+    return;
+  }
+  const userId = req.params.userId;
+  const type = req.body.type;
+
+  User.findOneAndUpdate({ _id: userId }, { type: type })
+    .then(() => {
+      res.json({
+        message: "User type updated",
+      });
+    })
+    .catch((err) => {
+      res.json({
+        message: "User type update failed",
+        error: err,
+      });
+    });
 }
+//disable or enable user
+export function disableUser(req, res) {
+  //validate admin
+  if (!isAdminValid(req)) {
+    res.status(403).json({
+      message: "Forbidden",
+    });
+    return;
+  }
+  const userId = req.params.userId;
+  const disabled = req.body.disabled;
+
+  User.findOneAndUpdate({ _id: userId }, { disabled: disabled })
+    .then(() => {
+      res.json({
+        message: "User disabled/enabled",
+      });
+    })
+    .catch((err) => {
+      res.json({
+        message: "User disable/enable failed",
+        error: err,
+      });
+    });
+}
+
+export function getUser(req, res) {
+  const user = req.user;
+  console.log(user);
+  if (user == null) {
+    res.json({
+      message: "not found",
+    });
+  } else {
+    res.json({
+      message: "found",
+      user: user,
+    });
+  }
+}
+
+
+
 
 //-------------------Update User-----------------------
 export function updateUser(req,res){
@@ -149,31 +229,82 @@ export function updateUser(req,res){
 }
 
 //------------------------------Delete Category--------------------------------
-export function deleteUser(req, res){
-    if(req.body.user == null){
-        res.status(401).json({
-            message: "Unauthorized"
-        })
-        return
+export function delelteUserByEmail(req, res) {
+  //validate admin
+  if (!isAdminValid(req)) {
+    res.status(403).json({
+      message: "Forbidden",
+    });
+    return;
+  }
+  const email = req.params.email;
+
+  User.findOneAndDelete({ email: email })
+    .then(() => {
+      res.json({
+        message: "User deleted",
+      });
+    })
+    .catch((err) => {
+      res.json({
+        message: "User delete failed",
+        error: err,
+      });
+    });
+}
+export function sendOtpEmail(email,otp) {
+  
+
+  const transport = nodemailer.createTransport({
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: "skyrek7@gmail.com",
+      pass: "uykbuxuyekwufqqp",
+    },
+  });
+
+  const message = {
+    from : "skyrek7@gmail.com",
+    to : email,
+    subject : "Validating OTP",
+    text : "Your otp code is "+otp
+  }
+
+  transport.sendMail(message, (err, info) => {
+    if(err){
+      console.log(err);     
+    }else{
+      console.log(info)
     }
-    if(req.body.user.type != "Admin"){
-        res.status(403).json({
-            message: "Forbidden"
-        })
-        return
+  });
+}
+
+export function verifyUserEmail(req,res){
+
+  const otp = req.body.otp;
+  const email = req.body.email;
+
+  Otp.find({email : email}).sort({date : -1}).then((otpList) => {
+    if(otpList.length == 0){
+      res.json({
+        message : "Otp is invalid"
+      });
+    }else{
+      const latestOtp = otpList[0];
+      if(latestOtp.otp == otp){
+        User.findOneAndUpdate({email : email},{emailVerified : true}).then(() => {
+          res.json({
+            message : "User email verified success fully"
+          });
+        });
+      }else{
+        res.json({
+          message : "Otp is invalid"
+        });
+      }
     }
-    const email = req.params.email
-    User.findOneAndDelete({email: email}).then(
-        ()=>{
-            res.json({
-                message: "User Deleted Successfully"
-            })
-        }
-    ).catch(
-        ()=>{
-            res.json({
-                message: "User Deletion Failed"
-            })
-        }
-    )
+  })
 }

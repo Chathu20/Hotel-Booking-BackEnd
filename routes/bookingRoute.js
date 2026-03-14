@@ -5,7 +5,8 @@ const bookingRouter = express.Router();
 
 bookingRouter.post("/", createBooking);
 bookingRouter.get("/", getAllBookings);
-bookingRouter.post("/category", createBookingUsingCategory);
-bookingRouter.get("/date/:date", retrieveBookingByDate);
+bookingRouter.get("/filter-date", retrieveBookingByDate);
+bookingRouter.post("/create-by-category", createBookingUsingCategory);
+
 
 export default bookingRouter;

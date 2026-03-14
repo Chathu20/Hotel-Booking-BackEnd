@@ -1,7 +1,7 @@
 import express from "express";
-import {createCategory, deleteCategory, getCategoryByName, getCategory, updateCategory } from "../controllers/categoryController.js"
+import {createCategory, deleteCategory, getCategoryByName, getCategory, updateCategory } from "../controllers/categoryController.js";
 
-const categoryRouter = express.Router()
+const categoryRouter = express.Router();
 
 categoryRouter.post("/", createCategory)
 

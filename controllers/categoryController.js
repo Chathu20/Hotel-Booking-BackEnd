@@ -1,4 +1,5 @@
 import Category from "../models/category.js";
+import Room from "../models/room.js";
 import { isAdminValid } from "./userController.js";
 
 export function createCategory(req,res){

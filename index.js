@@ -17,27 +17,28 @@ app.use(bodyParser.json());
 const connectionString = process.env.MONGO_URL;
 
 app.use((req, res, next) => {
-    const token = req.header("Authorization")?.replace("Bearer ", "");
-
-    if (token != null) {
-        jwt.verify(token, process.env.JWT_KEY, (err, decoded) => {
-            if (decoded != null) {
-                req.user = decoded;
-            }
-            next();
-        });
-    } else {
-        next();
-    }
+  
+	const token = req.header("Authorization")?.replace("Bearer ", "");
+	if (token != null) {
+		jwt.verify(token, process.env.JWT_KEY, (err, decoded) => {
+			if (decoded != null) {
+				req.user = decoded;
+				next();
+			} else {
+				next();
+			}
+		});
+	} else {
+		next();
+	}
 });
 
 mongoose.connect(connectionString)
     .then(() => {
         console.log("Connected to the database");
     })
-    .catch((error) => {
+    .catch(() => {
         console.log("Connection failed");
-        console.log(error.message);
     });
 
 app.use("/api/users", userRouter);
