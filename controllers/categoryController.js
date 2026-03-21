@@ -9,7 +9,7 @@ export function createCategory(req, res) {
     });
   }
 
-  if (req.user.type !== "Admin") { // 🔥 FIXED (Admin capital)
+  if (req.user.type !== "admin") { // 🔥 FIXED (Admin capital)
     return res.status(403).json({
       message: "Forbidden",
     });

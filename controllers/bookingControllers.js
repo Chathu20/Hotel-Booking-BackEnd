@@ -167,3 +167,13 @@ export async function createBookingUsingCategory(req, res) {
     });
   }
 }
+export function updateBookingStatus(req, res) {
+  if (!isAdminValid(req)) return res.status(403).json({ message: "Forbidden" });
+
+  Booking.findOneAndUpdate(
+    { bookingId: req.params.bookingId },
+    { status: req.body.status, reason: req.body.reason }
+  )
+    .then(() => res.json({ message: "Booking updated" }))
+    .catch(() => res.status(500).json({ message: "Update failed" }));
+}
