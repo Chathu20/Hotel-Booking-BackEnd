@@ -1,113 +1,118 @@
-import GalleryItem from "../models/galleryItem.js"
+import GalleryItem from "../models/galleryItem.js";
 
+// Create new gallery item
+export async function createGalleryItem(req, res) {
+  try {
+    const user = req.user;
 
-export function createGalleryItem(req, res){   
-   const user = req.user
-   if(user == null){
-    res.status(403).json({
-        message : "Pleace login to create a gallery item"
-    })
-    return
-   } 
-   if(user.type !="admin"){
-    req.status(403).json({
-        message : "You do not have permission to create a gallery ithem"
-    })
-    return
-   }
-    const galleryItem = req.body                    //Create new Gallery item
-    const newGalleryItem = new GalleryItem(galleryItem)
-    newGalleryItem.save().then(
-        ()=>{
-            res.json({
-                message: "Gallery item created successfully"
-            })
-        }
-    ).catch(
-        ()=>{
-            res.status(500).json({
-                message: "Gallery item creation failed"
-            })
-        }
-    )
-}
-export function getGalleryItems(req,res){
-    GalleryItem.find().then(
-        (list)=>{
-            res.json({
-                list : list
-            })
-        }
-    )
+    if (!user) {
+      return res.status(403).json({
+        message: "Please login to create a gallery item",
+      });
+    }
+
+    if (user.type !== "admin") {
+      return res.status(403).json({
+        message: "You do not have permission to create a gallery item",
+      });
+    }
+
+    const galleryItemData = req.body;
+    const newGalleryItem = new GalleryItem(galleryItemData);
+
+    await newGalleryItem.save();
+
+    res.status(201).json({
+      message: "Gallery item created successfully",
+      galleryItem: newGalleryItem,
+    });
+  } catch (error) {
+    console.error("Error creating gallery item:", error);
+    res.status(500).json({
+      message: "Gallery item creation failed",
+      error: error.message,
+    });
+  }
 }
 
-export function deleteGalleryItem(req,res){
-  const id = req.params.id
-  const user = req.user
-
-  if(user == null){
-
-    res.status(403).json({
-      message : "Please login to create a gallery item"
-    })
-    return
+// Get all gallery items
+export async function getGalleryItems(req, res) {
+  try {
+    const list = await GalleryItem.find();
+    res.status(200).json({ list });
+  } catch (error) {
+    console.error("Error fetching gallery items:", error);
+    res.status(500).json({
+      message: "Failed to fetch gallery items",
+      error: error.message,
+    });
   }
-
-  if(user.type != "admin"){
-    res.status(403).json({
-      message : "You are not authorized to create a gallery item"
-    })
-    return
-  }
-
-  GalleryItem.findByIdAndDelete(id).then(
-    ()=>{
-      res.json({
-        message : "Gallery Item deleted successfully"
-      })
-    }
-  ).catch(
-    ()=>{
-      res.status(500).json({
-        message : "Gallery Item deletion failed"
-      })  
-    }
-  )
-
 }
 
-export function updateGalleryItem(req,res){
-  const id = req.params.id
-  const user = req.user
+// Delete a gallery item by ID
+export async function deleteGalleryItem(req, res) {
+  try {
+    const id = req.params.id;
+    const user = req.user;
 
-  if(user == null){
-
-    res.status(403).json({
-      message : "Please login to create a gallery item"
-    })
-    return
-  }
-
-  if(user.type != "admin"){
-    res.status(403).json({
-      message : "You are not authorized to create a gallery item"
-    })
-    return
-  }
-
-  const galleryItem = req.body
-
-  GalleryItem.findByIdAndUpdate(id,galleryItem).then(
-    ()=>{
-      res.json({
-        message : "Gallery Item updated successfully"
-      })
+    if (!user) {
+      return res.status(403).json({
+        message: "Please login to delete a gallery item",
+      });
     }
-  ).catch(
-    ()=>{
-      res.status(500).json({
-        message : "Gallery Item update failed"
-      })
+
+    if (user.type !== "admin") {
+      return res.status(403).json({
+        message: "You are not authorized to delete a gallery item",
+      });
     }
-  )
+
+    await GalleryItem.findByIdAndDelete(id);
+
+    res.status(200).json({
+      message: "Gallery item deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting gallery item:", error);
+    res.status(500).json({
+      message: "Gallery item deletion failed",
+      error: error.message,
+    });
+  }
+}
+
+// Update a gallery item by ID
+export async function updateGalleryItem(req, res) {
+  try {
+    const id = req.params.id;
+    const user = req.user;
+
+    if (!user) {
+      return res.status(403).json({
+        message: "Please login to update a gallery item",
+      });
+    }
+
+    if (user.type !== "admin") {
+      return res.status(403).json({
+        message: "You are not authorized to update a gallery item",
+      });
+    }
+
+    const galleryItemData = req.body;
+    const updatedItem = await GalleryItem.findByIdAndUpdate(id, galleryItemData, {
+      new: true, // return the updated document
+    });
+
+    res.status(200).json({
+      message: "Gallery item updated successfully",
+      galleryItem: updatedItem,
+    });
+  } catch (error) {
+    console.error("Error updating gallery item:", error);
+    res.status(500).json({
+      message: "Gallery item update failed",
+      error: error.message,
+    });
+  }
 }

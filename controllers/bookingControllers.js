@@ -1,7 +1,6 @@
 import Booking from "../models/booking.js";
 import Room from "../models/room.js";
-import { isCustomerValid } from "./userController.js";
-
+import { isCustomerValid, isAdminValid } from "./userController.js";
 //-------------------New Booking Function--------------------
 export function createBooking(req, res) {
   if (!isCustomerValid(req)) {
